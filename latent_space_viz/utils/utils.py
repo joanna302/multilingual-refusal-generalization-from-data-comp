@@ -14,19 +14,16 @@ def load_harmful_harmless_datasets(lg=False, prompts_type="vanilla"):
     return harmful_data, harmless_data
 
 def load_dataset(harmtype: str, lg='all', data_type='train', prompts_type="vanilla", path="data_lg"):
-
     file_path = PATH.format(root_path=path, data_type=data_type, harmtype=harmtype, lg=lg, prompts_type=prompts_type)
     dataset = pd.read_csv(file_path)
     if lg=="all":
         dataset = dataset.groupby('language').sample(30, random_state=42)
-
     return dataset
 
 def filter_data(model, harmful_train, harmless_train, detector_model):
     """
     Filter datasets based on refusal scores.
     """
-
     print("Filtering train dataset")
     print(f"Number of harmful examples: {len(harmful_train)}")
     print(f"Number of harmless examples: {len(harmless_train)}")

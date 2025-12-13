@@ -8,8 +8,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing import List
 from jaxtyping import Float
 
-from pipeline.utils.utils import get_orthogonalized_matrix
-from pipeline.model_utils.model_base import ModelBase
+from utils.models_utils.model_base import ModelBase
 
 # Gemma chat template is based on
 # - Official Gemma documentation: https://ai.google.dev/gemma/docs/formatting
@@ -66,13 +65,6 @@ def tokenize_instructions_gemma_chat(
     )
 
     return result
-
-def orthogonalize_gemma_weights(model: AutoTokenizer, direction: Float[Tensor, "d_model"]):
-    model.model.embed_tokens.weight.data = get_orthogonalized_matrix(model.model.embed_tokens.weight.data, direction)
-
-    for block in model.model.layers:
-        block.self_attn.o_proj.weight.data = get_orthogonalized_matrix(block.self_attn.o_proj.weight.data.T, direction).T
-        block.mlp.down_proj.weight.data = get_orthogonalized_matrix(block.mlp.down_proj.weight.data.T, direction).T
 
 def act_add_gemma_weights(model, direction: Float[Tensor, "d_model"], coeff, layer):
     dtype = model.model.layers[layer-1].mlp.down_proj.weight.dtype

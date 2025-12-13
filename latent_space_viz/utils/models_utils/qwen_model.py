@@ -8,8 +8,7 @@ from typing import List
 from torch import Tensor
 from jaxtyping import Int, Float
 
-from pipeline.utils.utils import get_orthogonalized_matrix
-from pipeline.model_utils.model_base import ModelBase
+from utils.models_utils.model_base import ModelBase
 
 # Qwen chat templates are based on
 # - Official examples from Qwen repo: https://github.com/QwenLM/Qwen/blob/5aa84bdfd3237b37f01bc88cd49b3279b9a71d0b/examples/vllm_wrapper.py#L32
@@ -102,13 +101,6 @@ def detokenize_instructions_qwen_chat(
     )
 
     return result
-
-def orthogonalize_qwen_weights(model, direction: Float[Tensor, "d_model"]):
-    model.transformer.wte.weight.data = get_orthogonalized_matrix(model.transformer.wte.weight.data, direction)
-
-    for block in model.transformer.h:
-        block.attn.c_proj.weight.data = get_orthogonalized_matrix(block.attn.c_proj.weight.data.T, direction).T
-        block.mlp.c_proj.weight.data = get_orthogonalized_matrix(block.mlp.c_proj.weight.data.T, direction).T
 
 def act_add_qwen_weights(model, direction: Float[Tensor, "d_model"], coeff, layer):
     dtype = model.transformer.h[layer-1].mlp.c_proj.weight.dtype

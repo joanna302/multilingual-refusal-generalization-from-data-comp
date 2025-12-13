@@ -9,8 +9,10 @@ from dotenv import load_dotenv
 from transformers import pipeline, AutoModelForCausalLM
 import pandas as pd
 
-from utils.utils import load_and_sample_datasets, filter_data, get_refusal_scores_detector
+from utils.utils import load_harmful_harmless_datasets, filter_data, get_refusal_scores_detector
 from utils.process_activations import  get_activations, compute_and_plot_reduction_with_refusal, compute_and_plot_reduction_with_classifier
+
+from utils.models_utils.model_factory import construct_model_base
 
 def parse_arguments():
     """Parse model path argument from command line."""
@@ -25,19 +27,19 @@ def parse_arguments():
 
 def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, checkpoint, pca="refusal", layer=-1, lg_model="en"): 
     if prompt_type=="all": 
-        harmful_train_vanilla_lg1, harmless_train_vanilla_lg1 = load_and_sample_datasets(lg1, "vanilla")
-        harmful_train_adversarial_lg1, harmless_train_adversarial_lg1 = load_and_sample_datasets(lg1, "adversarial")
+        harmful_train_vanilla_lg1, harmless_train_vanilla_lg1 = load_harmful_harmless_datasets(lg1, "vanilla")
+        harmful_train_adversarial_lg1, harmless_train_adversarial_lg1 = load_harmful_harmless_datasets(lg1, "adversarial")
         harmful_train_lg1=pd.concat([harmful_train_vanilla_lg1, harmful_train_adversarial_lg1])
         harmless_train_lg1 = pd.concat([harmless_train_vanilla_lg1, harmless_train_adversarial_lg1])
 
-        harmful_train_vanilla_lg2, harmless_train_vanilla_lg2 = load_and_sample_datasets(lg2, "vanilla")
-        harmful_train_adversarial_lg2, harmless_train_adversarial_lg2 = load_and_sample_datasets(lg2, "adversarial")
+        harmful_train_vanilla_lg2, harmless_train_vanilla_lg2 = load_harmful_harmless_datasets(lg2, "vanilla")
+        harmful_train_adversarial_lg2, harmless_train_adversarial_lg2 = load_harmful_harmless_datasets(lg2, "adversarial")
         harmful_train_lg2=pd.concat([harmful_train_vanilla_lg2, harmful_train_adversarial_lg2])
         harmless_train_lg2 = pd.concat([harmless_train_vanilla_lg2, harmless_train_adversarial_lg2])
       
     else: 
-        harmful_train_lg1, harmless_train_lg1 = load_and_sample_datasets(lg1, prompt_type)
-        harmful_train_lg2, harmless_train_lg2 = load_and_sample_datasets(lg2, prompt_type)
+        harmful_train_lg1, harmless_train_lg1 = load_harmful_harmless_datasets(lg1, prompt_type)
+        harmful_train_lg2, harmless_train_lg2 = load_harmful_harmless_datasets(lg2, prompt_type)
 
     path_activations = f"{path}/activations/{checkpoint}/layer_{layer}"
     path_plot=f"{path}/{lg1}/{checkpoint}"
@@ -50,7 +52,7 @@ def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, check
             # filter refusal lg1 
             print("Compute activations refusal")
             if not os.path.exists(f"{path}/activations/{checkpoint}/harmful_train_lg1_filtered.json"):  
-                harmful_train_lg1_filtered, harmless_train_lg1_filtered = filter_data(model_base, harmful_train_lg1, harmless_train_lg1, detector_model, refusal_detection_method="detector_v6")
+                harmful_train_lg1_filtered, harmless_train_lg1_filtered = filter_data(model_base, harmful_train_lg1, harmless_train_lg1, detector_model)
                 with open(f"{path}/activations/{checkpoint}/harmful_train_lg1_filtered.json", "w") as js :
                     json.dump(harmful_train_lg1_filtered, js)
                 with open(f"{path}/activations/{checkpoint}/harmless_train_lg1_filtered.json", "w") as js :
@@ -135,8 +137,7 @@ if __name__ == "__main__":
 
     model_alias = os.path.basename(args.model_path)
 
-    model_base = AutoModelForCausalLM.from_pretrained(args.model_path, subfolder=f"{args.checkpoint}").to('cuda') 
-    num_layers = model_base.config.num_hidden_layers
+    model_base = construct_model_base(args.model_path, args.checkpoint)
 
     detector_model = pipeline("text-classification", model="joanna302/refusal_detector_v6") 
 
@@ -150,5 +151,5 @@ if __name__ == "__main__":
 
     lg1 = "all"
     for lg2 in list_lg: 
-       for l in range(-1, -num_layers, -2): 
-            compute_and_plot_with_refusal(lg1,lg2, model_base, path_to_save, args.prompts_type, args.checkpoint, pca="refusal", layer=l, lg_model=args.lg_model)
+       for l in range(-1, -36, -2): 
+            compute_and_plot_with_refusal(lg1,lg2, model_base, path_to_save, args.prompts_type, args.checkpoint, pca="refusal", layer=l, lg_model=args.model_lg)
