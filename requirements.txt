@@ -1,0 +1,17 @@
+unsloth==2025.10.9
+torch==2.8.0
+transformers==4.56.0
+peft==0.17.1
+pandas 
+matplotlib
+datasets
+wandb
+langdetect
+scikit-learn
+hf_transfer
+seaborn
+langcodes
+iso639-lang
+fasttext
+dotenv
+jaxtyping
