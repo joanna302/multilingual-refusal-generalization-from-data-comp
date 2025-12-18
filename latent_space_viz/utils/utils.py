@@ -18,6 +18,7 @@ def load_dataset(harmtype: str, lg='all', data_type='train', prompts_type="vanil
     dataset = pd.read_csv(file_path)
     if lg=="all":
         dataset = dataset.groupby('language').sample(30, random_state=42)
+    dataset = dataset[prompts_type]
     return dataset
 
 def filter_data(model, harmful_train, harmless_train, detector_model):
@@ -44,11 +45,9 @@ def filter_data(model, harmful_train, harmless_train, detector_model):
     return harmful_train, harmless_train
 
 
-def get_refusal_scores_detector(model, instructions, tokenize_instructions_fn, tokenizer, model_detection, prompt_type="vanilla", fwd_pre_hooks=[], fwd_hooks=[], batch_size=64):
+def get_refusal_scores_detector(model, instructions, tokenize_instructions_fn, tokenizer, model_detection, fwd_pre_hooks=[], fwd_hooks=[], batch_size=64):
  
     refusal_scores = torch.zeros(len(instructions), device=model.device)
-
-    instructions=list(instructions[prompt_type])
 
     for i in range(0, len(instructions), batch_size):
         tokenized_instructions = tokenize_instructions_fn(instructions=instructions[i:i+batch_size]).to(model.device)
