@@ -129,12 +129,7 @@ class QwenModel(ModelBase):
                 cache_dir=os.getenv("HUGGINGFACE_CACHE_DIR"),
                 subfolder=f"{checkpoint}",
             ).eval()
-
-        print(model)
-        print(model_path)
-        print(checkpoint)
         model.requires_grad_(False) 
-
         return model
 
     def _load_tokenizer(self, model_path):
@@ -152,18 +147,3 @@ class QwenModel(ModelBase):
 
     def _get_refusal_toks(self):
         return QWEN_REFUSAL_TOKS
-
-    def _get_model_block_modules(self):
-        return self.model.model.layers
-
-    def _get_attn_modules(self):
-        return torch.nn.ModuleList([block_module.self_attn for block_module in self.model_block_modules])
-    
-    def _get_mlp_modules(self):
-        return torch.nn.ModuleList([block_module.mlp for block_module in self.model_block_modules])
-
-    def _get_orthogonalization_mod_fn(self, direction: Float[Tensor, "d_model"]):
-        return functools.partial(orthogonalize_qwen_weights, direction=direction)
-    
-    def _get_act_add_mod_fn(self, direction: Float[Tensor, "d_model"], coeff, layer):
-        return functools.partial(act_add_qwen_weights, direction=direction, coeff=coeff, layer=layer)

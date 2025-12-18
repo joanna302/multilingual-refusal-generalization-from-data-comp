@@ -79,8 +79,7 @@ if __name__ == "__main__":
     args = parse_arguments()
 
 
-    # Data prep 
-
+    # Data preparation
     data_train = Dataset.from_pandas(pd.read_csv(f"{args.train_data_path}/data_{args.name_data}.csv"))
 
     if args.add_alpaca==True: 
@@ -107,10 +106,10 @@ if __name__ == "__main__":
     if "Qwen" in args.model_name: 
         model_base, tokenizer_base = FastLanguageModel.from_pretrained(
             model_name = f"unsloth/{args.model_name}-Base",
-            max_seq_length = 2048,   # Context length - can be longer, but uses more memory
-            load_in_4bit = False,     # 4bit uses much less memory
-            load_in_8bit = False,    # A bit more accurate, uses 2x memory
-            full_finetuning = True, # We have full finetuning now!
+            max_seq_length = 2048,   
+            load_in_4bit = False,     
+            load_in_8bit = False,    
+            full_finetuning = True, #
             device_map='auto', 
         )
         del tokenizer_base
@@ -171,8 +170,6 @@ if __name__ == "__main__":
                                         enable_thinking=False)
     
     text = [t+tokenizer.eos_token for t in text]
-    
-    print(text[0])
 
     data = pd.DataFrame(text, columns=["text"])
 
