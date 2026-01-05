@@ -16,10 +16,6 @@ import gc
 import math 
 import wandb
 
-# Clear cache before training
-torch.cuda.empty_cache()
-gc.collect()
-
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -109,7 +105,7 @@ if __name__ == "__main__":
             max_seq_length = 2048,   
             load_in_4bit = False,     
             load_in_8bit = False,    
-            full_finetuning = True, #
+            full_finetuning = True, 
             device_map='auto', 
         )
         del tokenizer_base
@@ -137,7 +133,7 @@ if __name__ == "__main__":
 
         tokenizer = AutoTokenizer.from_pretrained(f"unsloth/{args.model_name}-Instruct-2509")
         tokenizer.pad_token = tokenizer.eos_token 
-        tokenizer.padding_side = 'right' # padding to right (otherwise SFTTrainer shows warning)
+        tokenizer.padding_side = 'right' #
     
     else : 
         model_base, tokenizer_base = FastLanguageModel.from_pretrained(
@@ -156,7 +152,7 @@ if __name__ == "__main__":
         tokenizer = AutoTokenizer.from_pretrained(f"unsloth/{args.model_name}-it")
             
         tokenizer.pad_token = tokenizer.eos_token 
-        tokenizer.padding_side = 'right' # padding to right (otherwise SFTTrainer shows 
+        tokenizer.padding_side = 'right' 
 
     data_train =data_train.map(apply_template)
 
@@ -182,12 +178,12 @@ if __name__ == "__main__":
         model = model_base,
         tokenizer = tokenizer,
         train_dataset = dataset,
-        use_gradient_checkpointing = "unsloth" , # True or "unsloth" for very long context
+        use_gradient_checkpointing = "unsloth" , 
         args = SFTConfig(
             dataset_text_field = "text",
             per_device_train_batch_size = args.per_device_train_batch_size,
             warmup_steps = 5,
-            num_train_epochs=3, # Set this for 1 full training run.
+            num_train_epochs=3, 
             max_steps=-1,  
             learning_rate = args.lr, # 2e-4 = high lr / 2e-5 = low lr / 8e-5 = middle lr 
             logging_steps = 1,
@@ -196,7 +192,7 @@ if __name__ == "__main__":
             lr_scheduler_type = "linear",
             seed=args.seed,
             data_seed=42, 
-            report_to = "wandb", # Use this for WandB etc
+            report_to = "wandb", 
             save_strategy="steps", 
             save_steps=1/6, 
             push_to_hub=True, 
@@ -212,5 +208,5 @@ if __name__ == "__main__":
     model_base.save_pretrained(name)  
     tokenizer.save_pretrained(name) 
 
-    model_base.push_to_hub(f"{args.hf_id}/{name}", token = args.hf_token) # Online saving
-    tokenizer.push_to_hub(f"{args.hf_id}/{name}", token = args.hf_token) # Online saving
+    model_base.push_to_hub(f"{args.hf_id}/{name}", token = args.hf_token) 
+    tokenizer.push_to_hub(f"{args.hf_id}/{name}", token = args.hf_token) 
