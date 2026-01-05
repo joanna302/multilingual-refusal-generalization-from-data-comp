@@ -21,11 +21,15 @@ def parse_arguments():
     parser.add_argument(
         '--train_data_path', 
         type=str, 
-        default="../data/datasets_train")
+        default="data/datasets_train/trad")
     parser.add_argument(
         '--name_data', 
         type=str, 
-        default="en")
+        default="fr")
+    parser.add_argument(
+        '--model_name', 
+        type=str, 
+        default="Qwen3-4B")
     parser.add_argument(
         '--hf_id', 
         type=str)
@@ -55,7 +59,7 @@ def parse_arguments():
     parser.add_argument(
         '--alpaca_ratio', 
         type=float, 
-        default=0)
+        default=1)
     return parser.parse_args()
 
 
@@ -73,7 +77,6 @@ def apply_template(example):
 if __name__ == "__main__": 
 
     args = parse_arguments()
-
 
     # Data preparation
     data_train = Dataset.from_pandas(pd.read_csv(f"{args.train_data_path}/data_{args.name_data}.csv"))
@@ -196,8 +199,8 @@ if __name__ == "__main__":
             save_strategy="steps", 
             save_steps=1/6, 
             push_to_hub=True, 
-            hub_model_id=f"{args.hf_id}/{name}", 
-            hub_token=args.hf_token, 
+            #hub_model_id=f"{args.hf_id}/{name}", 
+            #hub_token=args.hf_token, 
             hub_strategy="all_checkpoints",
         ),
     )
