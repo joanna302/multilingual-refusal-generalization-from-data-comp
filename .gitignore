@@ -1,6 +1,7 @@
 __pycache__/
 myenv/
 data/data/
+train/data/
 latent_space_viz/data_lg/
 latent_space_viz/results/
 train/.DS_Store
