@@ -10,7 +10,7 @@ from transformers import pipeline, AutoModelForCausalLM
 import pandas as pd
 
 from utils.utils import load_harmful_harmless_datasets, filter_data, get_refusal_scores_detector
-from utils.process_activations import  get_activations, compute_and_plot_reduction_with_refusal, compute_and_plot_reduction_with_classifier
+from utils.process_activations import  get_activations, compute_and_plot_reduction_with_classifier
 
 from utils.models_utils.model_factory import construct_model_base
 
@@ -19,23 +19,28 @@ def parse_arguments():
     load_dotenv("..", override=True)
     parser = argparse.ArgumentParser(description="Parse model path argument.")
     parser.add_argument('--model_path', type=str, required=True, help='Path to the model')
-    parser.add_argument('--model_lg', type=str, required=True, help='Language of the finetuning data')
     parser.add_argument('--checkpoint', type=str, default='checkpoint-3988')
     parser.add_argument('--prompts_type', type=str, default='all')
     parser.add_argument('--detector_name', type=str, default="joanna302/refusal_detector_v6")
     return parser.parse_args()
 
-def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, checkpoint, pca="refusal", layer=-1, lg_model="en"): 
+def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, checkpoint, pca="refusal", layer=-1): 
     if prompt_type=="all": 
         harmful_train_vanilla_lg1, harmless_train_vanilla_lg1 = load_harmful_harmless_datasets(lg1, "vanilla")
         harmful_train_adversarial_lg1, harmless_train_adversarial_lg1 = load_harmful_harmless_datasets(lg1, "adversarial")
         harmful_train_lg1=pd.concat([harmful_train_vanilla_lg1, harmful_train_adversarial_lg1])
         harmless_train_lg1 = pd.concat([harmless_train_vanilla_lg1, harmless_train_adversarial_lg1])
 
+        print(len(harmful_train_lg1))
+        print(len(harmless_train_lg1))
+
         harmful_train_vanilla_lg2, harmless_train_vanilla_lg2 = load_harmful_harmless_datasets(lg2, "vanilla")
         harmful_train_adversarial_lg2, harmless_train_adversarial_lg2 = load_harmful_harmless_datasets(lg2, "adversarial")
         harmful_train_lg2=pd.concat([harmful_train_vanilla_lg2, harmful_train_adversarial_lg2])
         harmless_train_lg2 = pd.concat([harmless_train_vanilla_lg2, harmless_train_adversarial_lg2])
+
+        print(len(harmful_train_lg2))
+        print(len(harmless_train_lg2))
       
     else: 
         harmful_train_lg1, harmless_train_lg1 = load_harmful_harmless_datasets(lg1, prompt_type)
@@ -53,6 +58,12 @@ def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, check
             print("Compute activations refusal")
             if not os.path.exists(f"{path}/activations/{checkpoint}/harmful_train_lg1_filtered.json"):  
                 harmful_train_lg1_filtered, harmless_train_lg1_filtered = filter_data(model_base, harmful_train_lg1, harmless_train_lg1, detector_model)
+                
+                print(len(harmful_train_lg1_filtered))
+                print(len(harmless_train_lg1_filtered))
+
+                print(harmful_train_lg1_filtered)
+                print(harmless_train_lg1_filtered)
                 with open(f"{path}/activations/{checkpoint}/harmful_train_lg1_filtered.json", "w") as js :
                     json.dump(harmful_train_lg1_filtered, js)
                 with open(f"{path}/activations/{checkpoint}/harmless_train_lg1_filtered.json", "w") as js :
@@ -126,14 +137,14 @@ def compute_and_plot_with_refusal(lg1, lg2, model_base, path, prompt_type, check
         print("Load refusal labels")
         label_data_lg2_refusal= torch.load(f"{path}/activations/{checkpoint}/refusal_labels_{lg2}.pt")
 
-    compute_and_plot_reduction_with_classifier(activation_harmful_lg1_filtered, activation_harmless_lg1_filtered, activation_harmful_lg2, activation_harmless_lg2, label_data_lg2_refusal, path_plot, lg2, checkpoint=checkpoint, reduction_type='pca',  prompt_type=prompt_type, classifier="regression", classifier_form_prompts=True, layer=layer, lg_model=lg_model)
+    compute_and_plot_reduction_with_classifier(activation_harmful_lg1_filtered, activation_harmless_lg1_filtered, activation_harmful_lg2, activation_harmless_lg2, label_data_lg2_refusal, path_plot, lg2, checkpoint=checkpoint, reduction_type='pca',  prompt_type=prompt_type, classifier="regression", classifier_form_prompts=True, layer=layer)
 
 if __name__ == "__main__":
     args = parse_arguments()
 
     model_alias = os.path.basename(args.model_path)
     model_base = construct_model_base(args.model_path, args.checkpoint)
-    num_layers = model_base.model.config.num_hidden_layers
+    num_layers = model_base.model.language_model.config.num_hidden_layers
 
     detector_model = pipeline("text-classification", model=args.detector_name) 
 
@@ -147,4 +158,4 @@ if __name__ == "__main__":
     lg1 = "all"
     for lg2 in list_lg: 
        for l in range(-1, -num_layers, -4): 
-            compute_and_plot_with_refusal(lg1,lg2, model_base, path_to_save, args.prompts_type, args.checkpoint, pca="refusal", layer=l, lg_model=args.model_lg)
+            compute_and_plot_with_refusal(lg1,lg2, model_base, path_to_save, args.prompts_type, args.checkpoint, pca="refusal", layer=l)

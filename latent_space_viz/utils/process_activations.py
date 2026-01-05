@@ -20,7 +20,7 @@ def chat_template(example):
     ]
     return {"conversation": conversation}
 
-def get_activations(model, instructions, tokenize_instructions_fn, batch_size=32, layer_idx=-1, token_idx=-1):
+def get_activations(model, instructions, tokenize_instructions_fn, batch_size=16, layer_idx=-1, token_idx=-1):
     last_activations= None
 
     for i in range(0, len(instructions), batch_size):
@@ -42,7 +42,7 @@ def get_activations(model, instructions, tokenize_instructions_fn, batch_size=32
     return last_activations
 
 
-def compute_and_plot_reduction_with_classifier(activation_refusal_lg1, activation_nn_refusal_lg1, activation_harmful_lg2, activation_harmless_lg2, label_data_lg2_refusal,  dir, lg2, checkpoint, reduction_type='pca', n_compo=2, prompt_type="vanilla", classifier="svm", classifier_form_prompts=False, layer=-1, lg_model="en"): 
+def compute_and_plot_reduction_with_classifier(activation_refusal_lg1, activation_nn_refusal_lg1, activation_harmful_lg2, activation_harmless_lg2, label_data_lg2_refusal,  dir, lg2, checkpoint, reduction_type='pca', n_compo=2, prompt_type="vanilla", classifier="svm", classifier_form_prompts=False, layer=-1): 
     activations_ref_lg1_np = activation_refusal_lg1.detach().cpu().to(torch.float32) 
     activations_nn_ref_lg1_np = activation_nn_refusal_lg1.detach().cpu().to(torch.float32)
 
