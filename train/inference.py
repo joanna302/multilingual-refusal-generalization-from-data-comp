@@ -100,7 +100,6 @@ if __name__ == "__main__":
     elif "Qwen3" in args.model_name: 
         tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
         model.config.pad_token_id = tokenizer.pad_token_id 
-        print("qwen")
     tokenizer.padding_side = 'left'
 
     ### process data

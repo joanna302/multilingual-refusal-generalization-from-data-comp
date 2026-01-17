@@ -138,7 +138,7 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token 
         tokenizer.padding_side = 'right' #
     
-    else : 
+    elif "gemma" in args.model_name: 
         model_base, tokenizer_base = FastLanguageModel.from_pretrained(
             model_name = f"unsloth/{args.model_name}-pt",
             max_seq_length = 2048,   # Context length - can be longer, but uses more memory
@@ -153,11 +153,14 @@ if __name__ == "__main__":
         gc.collect()
 
         tokenizer = AutoTokenizer.from_pretrained(f"unsloth/{args.model_name}-it")
-            
         tokenizer.pad_token = tokenizer.eos_token 
         tokenizer.padding_side = 'right' 
+    
+    else : 
+        raise NotImplementedError("We do not provide an implementation for training this model.")
 
     data_train =data_train.map(apply_template)
+
 
     if args.add_alpaca==True : 
         alpaca_data =alpaca_data.map(apply_template)
@@ -168,7 +171,7 @@ if __name__ == "__main__":
                                         add_special_tokens=True, 
                                         enable_thinking=False)
     
-    text = [t+tokenizer.eos_token for t in text]
+    #text = [t+tokenizer.eos_token for t in text]
 
     data = pd.DataFrame(text, columns=["text"])
 

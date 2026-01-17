@@ -17,6 +17,10 @@ pip install -r requirements.txt
 
 * The folder "train" are used to process the data, fine-tune the models, carry out the inferences and evaluate the results.
 
+The folder ``` train/process_data``` was used the create the training and eval datasets. 
+We use the script ```train/train.py``` to fine-tune the models, the script ```train/inference.py``` to run the inference on the evaluation datasets. We then evaluate the outputs (detect the refusals) with the script ```train/eval/eval_results.py```. We use the notebook ```translate_output_llm.ipynb``` to translate the outputs for evaluate only output in high-resource languages. 
+We then re-evaluate the translated outputs thanks to the scripts ```eval_results.py```
+
 Train a model : 
 ```
 
@@ -30,10 +34,6 @@ Evaluation :
 ```
 
 ```
-Translate output for evaluate only output in high-resource languages : 
-```
-
-```
 
 
 * The folder "res_analysis" presentes the results of the multilingual fine-tuning on various models. 
@@ -41,5 +41,6 @@ Translate output for evaluate only output in high-resource languages :
 * The codes presented in the folder "latent_space_viz" has been adapted from: https://github.com/andyrdt/refusal_direction. This folder is used for the study of the latent space (part 6 of the paper). \
 Run the script : 
 ```
-python -m plot_latent_space --model_path joanna303/gemma-3-4B-Base_en_alpaca_1_part_SFT_8e-05
+python -m plot_latent_space --model_path [model_path]
 ```
+The notebook ```latent_space_viz/results_viz_latent_space.ipynb``` presents the results we obtained. 
